@@ -8,12 +8,12 @@
         <version>2.7.9</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>yonam2023</groupId>
-    <artifactId>sfproject</artifactId>
+    <groupId>ojh</groupId>
+    <artifactId>smart-factory-management</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
-    <name>sfproject</name>
-    <description>Demo project for Spring Boot</description>
+    <name>smart-factory-management</name>
+    <description>Solo Project</description>
     <properties>
         <java.version>11</java.version>
     </properties>
@@ -29,11 +29,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
         </dependency>
 
         <dependency>
@@ -65,7 +60,7 @@
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
-            <version>1.1</version>
+            <version>1.1.1</version>
         </dependency>
 
          <dependency>
@@ -91,8 +86,8 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
-        <optional>true</optional>
-    </dependency>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
 
