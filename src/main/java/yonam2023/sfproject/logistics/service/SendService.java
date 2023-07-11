@@ -3,6 +3,7 @@ package yonam2023.sfproject.logistics.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import yonam2023.sfproject.logistics.aop.LogisticsNotify;
 import yonam2023.sfproject.logistics.controller.form.SendForm;
 import yonam2023.sfproject.logistics.domain.SendRecord;
 import yonam2023.sfproject.logistics.domain.StoredItem;
@@ -10,11 +11,12 @@ import yonam2023.sfproject.logistics.repository.SendRecordRepository;
 import yonam2023.sfproject.logistics.repository.StoredItemRepository;
 
 @RequiredArgsConstructor
-//@Service
+@Service
 public class SendService {
     private final SendRecordRepository sendRecordRepo;
     private final StoredItemRepository storedItemRepo;
 
+    @LogisticsNotify
     @Transactional
     public Long saveSendRecord(SendForm.Request sendReqForm){
         SendRecord sendRecord = sendReqForm.toEntity();
@@ -31,8 +33,9 @@ public class SendService {
         }
     }
 
+    @LogisticsNotify
     @Transactional
-    public void editSendRecord(long id, SendForm.Request sendReqForm){
+    public Long editSendRecord(long id, SendForm.Request sendReqForm){
         SendRecord targetRecord = sendRecordRepo.findById(id).orElseThrow();
         StoredItem storedItem = storedItemRepo.findByName(sendReqForm.getItemName());
 
@@ -45,22 +48,28 @@ public class SendService {
         //재고 수정
         storedItem.addAmount(previousReservedAmount); //원상 복구
         storedItem.subAmount(sendReqForm.getAmount()); //수정된 출고 amount 반영
+        return storedItem.getId();
     }
 
+    @LogisticsNotify
     @Transactional
-    public void deleteSendRecord(long recordId){
+    public Long deleteSendRecord(long recordId){
 
+        // 두 사람이 동시에 같은 예약을 삭제하려고 하면 이미 DB에서 제거되었기 때문에 orElseThrow가 동작한다.
         SendRecord findRecord = sendRecordRepo.findById(recordId).orElseThrow();
         StoredItem byNameItem = storedItemRepo.findByName(findRecord.getItemName());
-        // 출고 예약을 삭제하려고 하는데 예약된 게 없는 경우 byNameItem == null이 된다. 그런데 이런 경우가
-        // 실제로 발생할 수 있을 것 같진 않다. 출고 예약 목록에 데이터가 존재해서 고객이
+
+        // 출고 예약을 삭제하려고 하는데 예약된 게 없는 경우 byNameItem == null이 된다. (사실 발생할 수 없는 경우다.)
+        // 이 경우 이 메서드의 반환 값은 null이 된다. -> 이 메서드를 호출하는 쪽에서 null 처리를 하자.
         if(byNameItem == null){
-            storedItemRepo.save(new StoredItem(findRecord.getItemName(), findRecord.getAmount()));
+            byNameItem = new StoredItem(findRecord.getItemName(), findRecord.getAmount());
+            storedItemRepo.save(byNameItem);
         }
         else{
             byNameItem.addAmount(findRecord.getAmount());
         }
         sendRecordRepo.deleteById(recordId);
+        return byNameItem.getId();
     }
 
 }
