@@ -20,7 +20,6 @@ public class LogisticsAspect {
         private final StoredItemRepository storedItemRepo;
         @AfterReturning(pointcut = "@annotation(yonam2023.sfproject.logistics.aop.LogisticsNotify)", returning = "storedId")
         public void notify(JoinPoint joinPoint, Long storedId){
-            if (storedId == null) return;
             notifyService.departmentNotify(DepartmentType.LOGISTICS,"["+joinPoint.getSignature().getName()+"]",
                     "Item: "+storedItemRepo.findById(storedId).orElseThrow().getName());
         }

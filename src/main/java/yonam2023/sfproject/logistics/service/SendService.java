@@ -10,6 +10,8 @@ import yonam2023.sfproject.logistics.domain.StoredItem;
 import yonam2023.sfproject.logistics.repository.SendRecordRepository;
 import yonam2023.sfproject.logistics.repository.StoredItemRepository;
 
+import java.util.NoSuchElementException;
+
 @RequiredArgsConstructor
 @Service
 public class SendService {
@@ -55,15 +57,14 @@ public class SendService {
     @Transactional
     public Long deleteSendRecord(long recordId){
 
-        // 두 사람이 동시에 같은 예약을 삭제하려고 하면 이미 DB에서 제거되었기 때문에 orElseThrow가 동작한다.
+        // 두 사람이 동시에 같은 예약을 삭제하려고 하면 이미 DB에서 제거되었기 때문에 NoSuchElementException이 발생한다.
         SendRecord findRecord = sendRecordRepo.findById(recordId).orElseThrow();
         StoredItem byNameItem = storedItemRepo.findByName(findRecord.getItemName());
 
         // 출고 예약을 삭제하려고 하는데 예약된 게 없는 경우 byNameItem == null이 된다. (사실 발생할 수 없는 경우다.)
-        // 이 경우 이 메서드의 반환 값은 null이 된다. -> 이 메서드를 호출하는 쪽에서 null 처리를 하자.
+        // 이 경우 NoSuchElementException을 발생시킨다.
         if(byNameItem == null){
-            byNameItem = new StoredItem(findRecord.getItemName(), findRecord.getAmount());
-            storedItemRepo.save(byNameItem);
+            throw new NoSuchElementException("출고 예약을 삭제하려고 하는데 예약된 게 없는 경우 byNameItem == null이 된다. (사실 발생할 수 없는 경우다.)");
         }
         else{
             byNameItem.addAmount(findRecord.getAmount());
@@ -73,3 +74,4 @@ public class SendService {
     }
 
 }
+
