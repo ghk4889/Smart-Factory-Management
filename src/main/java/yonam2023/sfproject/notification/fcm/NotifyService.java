@@ -36,7 +36,7 @@ public class NotifyService {
             tokens.forEach(token -> {
 //                System.out.println("[in notifyService] token: "+token);
                 NotificationRequest notificationRequest = NotificationRequest.builder()
-                        .title("[ALL]" + title)
+                        .title("[Department]" + title)
                         .token(token)
                         .message(message)
                         .build();

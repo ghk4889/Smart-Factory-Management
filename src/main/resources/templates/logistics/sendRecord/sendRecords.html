@@ -39,26 +39,29 @@
     <script th:inline="javascript">
     function del(id) {
 
-      const con_check = confirm(id+"번 예약을 정말 삭제하시겠습니까?");
+        const con_check = confirm(id+"번 예약을 정말 삭제하시겠습니까?");
 
-      if(con_check == true) {
-          $.ajax({
-              type: 'DELETE',
-              url: document.location.pathname+'/'+id,
-              dataType: 'JSON',
-              contentType: 'application/json; charset=utf-8'
-          })
-          .done(function () {
-              alert("삭제되었습니다.");
-              window.location.href = document.location.pathname;
-          }).fail(function (error) {
-              alert(JSON.stringify(error));
-          });
-      } else {
-          return false;
-      }
-  }
-  </script>
+        if(con_check == true) {
+            $.ajax({
+                type: 'DELETE',
+                url: document.location.pathname+'/'+id,
+                dataType: 'JSON',
+                contentType: 'application/json; charset=utf-8'
+            })
+            .done(function () {
+                alert("삭제되었습니다.");
+                window.location.href = document.location.pathname;
+            })
+            .fail(function (error) {
+                alert(JSON.stringify(error));
+                window.location.href = document.location.pathname;
+            });
+        }
+        else {
+            return false;
+        }
+    }
+    </script>
 
     <button id="formBtn" th:onclick="|location.href='@{sendRecords/reserve}'|" class="btn btn-outline-primary">출고 예약</button>
 </section>

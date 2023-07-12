@@ -10,12 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import yonam2023.sfproject.employee.domain.DepartmentType;
 import yonam2023.sfproject.logistics.controller.form.ReceiveForm;
 import yonam2023.sfproject.logistics.domain.ReceiveRecord;
 import yonam2023.sfproject.logistics.repository.ReceiveRecordRepository;
 import yonam2023.sfproject.logistics.service.ReceiveService;
-import yonam2023.sfproject.notification.fcm.NotifyService;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
@@ -31,7 +29,6 @@ import java.util.List;
 public class ReceiveRecordViewController {
     private final ReceiveRecordRepository receiveRecordRepo;
     private final ReceiveService receiveService;
-    private final NotifyService notifyService;
 
     //더미 데이터 생성.
     @PostConstruct
@@ -62,8 +59,6 @@ public class ReceiveRecordViewController {
     @PostMapping("/reserve")
     public String reserveItem(@ModelAttribute ReceiveForm.Request receiveReqForm) {
         receiveService.saveReceiveRecord(receiveReqForm);
-        //todo: 특정 부서의 사용자들에게만 알림을 보내도록 수정
-        notifyService.departmentNotify(DepartmentType.LOGISTICS,"[입고 예약 알림]", receiveReqForm.getItemName()+"이 입고되었습니다!");
         return "redirect:/receiveRecords";
     }
 
@@ -78,14 +73,12 @@ public class ReceiveRecordViewController {
     @PatchMapping("/{recordId}")
     public String editReserveRecord(@PathVariable long recordId, @ModelAttribute ReceiveForm.Request receiveReqForm){
         receiveService.editReceiveRecord(recordId, receiveReqForm);
-        notifyService.departmentNotify(DepartmentType.LOGISTICS,"[입고 수정 알림]", receiveReqForm.getItemName()+"의 예약이 수정되었습니다!");
         return "redirect:/receiveRecords";
     }
     @DeleteMapping("/{recordId}")
     @ResponseBody
     public ResponseEntity deleteReserve(@PathVariable long recordId){
-        String deletedItemName = receiveService.deleteReceiveRecord(recordId);
-        notifyService.departmentNotify(DepartmentType.LOGISTICS,"[입고 취소 알림]", deletedItemName+"의 입고예약이 취소되었습니다!");
+        receiveService.deleteReceiveRecord(recordId);
         return ResponseEntity.ok(recordId);
     }
 

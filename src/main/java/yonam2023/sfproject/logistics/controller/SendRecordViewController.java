@@ -22,7 +22,6 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @RequestMapping("/sendRecords")
 @Controller
 @RequiredArgsConstructor
@@ -75,12 +74,14 @@ public class SendRecordViewController {
         return "redirect:/sendRecords";
     }
 
+
+    // 공부하는 차원에서 delete 연산만 ajax로 처리함.
     @DeleteMapping("/{recordId}")
     @ResponseBody
     public ResponseEntity deleteReserve(@PathVariable long recordId){
+        //NoSuchElementException 발생 시 LogisticsExControllerAdvice의 @ExceptionHandler가 처리
         sendService.deleteSendRecord(recordId);
         return ResponseEntity.ok(recordId);
     }
-
 
 }
