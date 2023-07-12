@@ -59,18 +59,18 @@ public class SendService {
 
         // 두 사람이 동시에 같은 예약을 삭제하려고 하면 이미 DB에서 제거되었기 때문에 NoSuchElementException이 발생한다.
         SendRecord findRecord = sendRecordRepo.findById(recordId).orElseThrow();
-        StoredItem byNameItem = storedItemRepo.findByName(findRecord.getItemName());
+        StoredItem storedItem = storedItemRepo.findByName(findRecord.getItemName());
 
-        // 출고 예약을 삭제하려고 하는데 예약된 게 없는 경우 byNameItem == null이 된다. (사실 발생할 수 없는 경우다.)
+        // 예약을 삭제하려고 하는데 예약된 게 없는 경우 storedItem == null이 된다. (사실 발생할 수 없는 경우다.)
         // 이 경우 NoSuchElementException을 발생시킨다.
-        if(byNameItem == null){
+        if(storedItem == null){
             throw new NoSuchElementException("출고 예약을 삭제하려고 하는데 예약된 게 없는 경우 byNameItem == null이 된다. (사실 발생할 수 없는 경우다.)");
         }
         else{
-            byNameItem.addAmount(findRecord.getAmount());
+            storedItem.addAmount(findRecord.getAmount());
         }
         sendRecordRepo.deleteById(recordId);
-        return byNameItem.getId();
+        return storedItem.getId();
     }
 
 }

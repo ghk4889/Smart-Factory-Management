@@ -11,13 +11,14 @@ import yonam2023.sfproject.notification.fcm.NotifyService;
 
 public class LogisticsAspect {
 
-
     @Aspect
     @RequiredArgsConstructor
     @Component
     public static class NotifyAspect{
+
         private final NotifyService notifyService;
         private final StoredItemRepository storedItemRepo;
+
         @AfterReturning(pointcut = "@annotation(yonam2023.sfproject.logistics.aop.LogisticsNotify)", returning = "storedId")
         public void notify(JoinPoint joinPoint, Long storedId){
             notifyService.departmentNotify(DepartmentType.LOGISTICS,"["+joinPoint.getSignature().getName()+"]",
