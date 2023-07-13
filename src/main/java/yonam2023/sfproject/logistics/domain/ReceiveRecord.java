@@ -24,6 +24,8 @@ public class ReceiveRecord {
 
     private LocalDateTime dateTime;
 
+    private boolean isConfirmed = false;
+
     public ReceiveRecord(String itemName, int amount, String supplier, LocalDateTime dateTime) {
         this.itemName = itemName;
         this.amount = amount;
