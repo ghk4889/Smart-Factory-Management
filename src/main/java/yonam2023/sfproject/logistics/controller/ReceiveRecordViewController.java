@@ -36,7 +36,9 @@ public class ReceiveRecordViewController {
         List<ReceiveRecord> receiveRecords = new ArrayList<>();
         LocalDate date = Year.of(2023).atMonth(3).atDay(12);
         for(int i = 0; i<20; i++){
-            receiveRecords.add(new ReceiveRecord("item "+i, 11, "XX 회사",date.atTime(15, i+1)));
+            ReceiveRecord newRecord = new ReceiveRecord("item " + i, 11, "XX 회사", date.atTime(15, i + 1));
+            newRecord.setConfirmed(true);
+            receiveRecords.add(newRecord);
         }
 
         receiveRecordRepo.saveAll(receiveRecords);
@@ -75,11 +77,19 @@ public class ReceiveRecordViewController {
         receiveService.editReceiveRecord(recordId, receiveReqForm);
         return "redirect:/receiveRecords";
     }
+
     @DeleteMapping("/{recordId}")
     @ResponseBody
     public ResponseEntity deleteReserve(@PathVariable long recordId){
         receiveService.deleteReceiveRecord(recordId);
         return ResponseEntity.ok(recordId);
+    }
+
+    @PatchMapping("/confirm/{recordId}")
+    @ResponseBody
+    public ResponseEntity confirmReserve(@PathVariable long recordId){
+        long storedItemId = receiveService.confirmReceiveRecord(recordId);
+        return ResponseEntity.ok(storedItemId);
     }
 
 }

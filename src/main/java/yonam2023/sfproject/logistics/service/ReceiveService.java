@@ -10,6 +10,7 @@ import yonam2023.sfproject.logistics.domain.StoredItem;
 import yonam2023.sfproject.logistics.repository.ReceiveRecordRepository;
 import yonam2023.sfproject.logistics.repository.StoredItemRepository;
 
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
 @RequiredArgsConstructor
@@ -26,20 +27,43 @@ public class ReceiveService {
 
         StoredItem storedItem = storedItemRepo.findByName(receiveRecord.getItemName());
 
+        // 처음 입고 예약 받은 물건은 재고DB에 저장된 기록이 없으므로, (storedItem == null) 이다.
         if(storedItem == null){
-            return storedItemRepo.save(new StoredItem(receiveRecord.getItemName(),receiveRecord.getAmount())).getId();
+            // 재고DB에 물건의 존재를 저장만 하는 것이므로, amount를 0으로 둔다.
+            return storedItemRepo.save( new StoredItem(receiveRecord.getItemName(),0) ).getId();
         }
-        else{
-            storedItem.addAmount(receiveRecord.getAmount());
-            return storedItem.getId();
-        }
+
+        return storedItem.getId();
 
     }
 
     @LogisticsNotify
     @Transactional
-    public Long editReceiveRecord(long id, ReceiveForm.Request receiveReqForm){
-        ReceiveRecord targetRecord = receiveRecordRepo.findById(id).orElseThrow();
+    public Long confirmReceiveRecord(long receiveId){
+        ReceiveRecord receiveRecord = receiveRecordRepo.findById(receiveId).orElseThrow();
+        StoredItem storedItem = storedItemRepo.findByName(receiveRecord.getItemName());
+
+        // 처음 입고 받는 물건이어도 null일 수 없다. 입고 예약할 때(ReceiveService#saveReceiveRecord) amount = 0으로 재고에 올려놨기 때문.
+        if(storedItem == null){
+            //있을 수 없는 상황이므로 예외 발생
+            throw new NoSuchElementException("[ReceiveService#saveReceiveRecord] 발생할 수 없는 상황.");
+        }
+        //입고일을 현재 날짜로 변경
+        receiveRecord.setDateTime(LocalDateTime.now());
+
+        //현재 예약이 confirm 되었으므로 갱신.
+        receiveRecord.setConfirmed(true);
+
+        //재고에 반영
+        storedItem.addAmount(receiveRecord.getAmount());
+        return storedItem.getId();
+
+    }
+
+    @LogisticsNotify
+    @Transactional
+    public Long editReceiveRecord(long receiveId, ReceiveForm.Request receiveReqForm){
+        ReceiveRecord targetRecord = receiveRecordRepo.findById(receiveId).orElseThrow();
         StoredItem storedItem = storedItemRepo.findByName(receiveReqForm.getItemName());
 
         int previousReservedAmount = targetRecord.getAmount();
@@ -61,11 +85,13 @@ public class ReceiveService {
 
         ReceiveRecord findRecord = receiveRecordRepo.findById(recordId).orElseThrow();
         StoredItem storedItem = storedItemRepo.findByName(findRecord.getItemName());
+
+        //입고 예약 목록에 delete 버튼이 활성화 된 상태
+        // == 입고 예약이 되어 있는 상태
+        // == 재고DB에도 예약된 Item이 항상 존재함. (ReceiveService#saveReceiveRecord)
+        // == storedItem은 절대 null이 될 수 없음.
         if(storedItem == null){
-            //todo: 입고 예약일과 재고 반영일을 실제 동작하도록 구현한다면 재고가 생기기 전에 입고 예약을 취소할 수 있다.
-            // 지금은 입고 예약일과 무관하게 바로 재고에 생기므로 byNameItem이 null일 수 없다. 일단 예외를 발생시키는 것으로 처리하자.
-            // 추후 예약일 동기화 기능이 도입되면 적절한 로직을 추가하자.
-            throw new NoSuchElementException("[ReceiveService#delete] 날짜 동기화 기능을 도입했다면 로직을 새로 작성해야 한다.");
+            throw new NoSuchElementException("[ReceiveService#delete] 발생할 수 없는 상황.");
         }
         else{
             storedItem.subAmount(findRecord.getAmount());
