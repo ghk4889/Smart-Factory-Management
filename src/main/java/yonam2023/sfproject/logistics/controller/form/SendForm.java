@@ -23,10 +23,12 @@ public class SendForm {
         /* Dto -> Entity */
         public SendRecord toEntity() {
             return new SendRecord(itemName, amount, destination,
-                    date.atTime((int) (Math.random() * 24) + 1, (int) (Math.random() * 59) + 1));
+                    // Math.random() * 24 ==> 0 ~ 23  // atTime(hour, minute)에서 hour는 0~23만 올 수 있음.
+                    // Math.random() * 60 ==> 0 ~ 59  // atTime(hour, minute)에서 minute는 0~59만 올 수 있음.
+                    date.atTime((int) (Math.random() * 24), (int) (Math.random() * 59)));
         }
         public LocalDateTime getDateTime(){
-            return date.atTime((int) (Math.random() * 24) + 1, (int) (Math.random() * 59) + 1);
+            return date.atTime((int) (Math.random() * 24), (int) (Math.random() * 59));
         }
     }
 

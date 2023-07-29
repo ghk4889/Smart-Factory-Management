@@ -36,7 +36,9 @@ public class SendRecordViewController {
         List<SendRecord> sendRecords = new ArrayList<>();
         LocalDate date = Year.of(2023).atMonth(3).atDay(20);
         for(int i = 0; i<20; i++){
-            sendRecords.add(new SendRecord("item "+i, 11, "부산", date.atTime(15, i+1)));
+            SendRecord newRecord = new SendRecord("item " + i, 11, "부산", date.atTime(15, i + 1));
+            newRecord.setConfirmed(true);
+            sendRecords.add(newRecord);
         }
         sendRecordRepo.saveAll(sendRecords);
     }
@@ -58,6 +60,13 @@ public class SendRecordViewController {
         sendService.saveSendRecord(sendReqForm);
         // todo: 값 검증 로직 추가하기. ex) 재고량을 초과하는 출고량이 입력되면 경고 문구.
         return "redirect:/sendRecords";
+    }
+
+    @PatchMapping("/confirm/{recordId}")
+    @ResponseBody
+    public ResponseEntity confirmReserve(@PathVariable long recordId){
+        long storedItemId = sendService.confirmSendRecord(recordId);
+        return ResponseEntity.ok(storedItemId);
     }
 
     // edit form page

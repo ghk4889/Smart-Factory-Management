@@ -11,12 +11,13 @@
             <thead>
             <tr>
                 <th style="width: 4%" scope="col">물건 id</th>
-                <th style="width: 9%" scope="col">출고된 물건명</th>
+                <th style="width: 7%" scope="col">출고된 물건명</th>
                 <th style="width: 5%" scope="col">출고 수량</th>
-                <th style="width: 6%" scope="col">목적지</th>
+                <th style="width: 6%" scope="col">목적지(to)</th>
                 <th style="width: 7%" scope="col">출고일</th>
-                <th style="width: 2%"></th>
-                <th style="width: 2%"></th>
+                <th style="width: 1%"></th>
+                <th style="width: 3%"></th>
+                <th style="width: 3%"></th>
             </tr>
             </thead>
             <tbody>
@@ -25,12 +26,15 @@
                 <td th:text="${record.itemName}">thymeleaf 안 돌아간 물건</td>
                 <td class="text-danger" th:text="|-${record.amount}|">22</td>
                 <td th:text="${record.destination}">aa회사</td>
-                <td th:text="${#temporals.format(record.dateTime, 'yyyy-MM-dd &nbsp; HH:mm')}">2022.10.11</td>
-                <div th:unless="${record.dateTime.toLocalDate().isBefore(#temporals.createToday())}">
-                <td><a type="button"
-                       th:href="@{{currentPath}/{itemId}/edit(currentPath=${#request.getRequestURL()}, itemId=${record.id}) }"
-                       class="btn btn-outline-primary">수정</a></td>
+                <td th:if="${record.isConfirmed}" th:text="${#temporals.format(record.dateTime, 'yyyy-MM-dd &nbsp; HH:mm')}">2022.10.11</td>
+                <td th:unless="${record.isConfirmed}" style="color:#aab011;" th:text="|${#temporals.format(record.dateTime, 'yyyy-MM-dd &nbsp; HH:mm')}&nbsp;&nbsp;(예정일)|">2022.10.11</td>
+                <!-- confirm된 예약은 수정, 취소, 확정을 할 수 없으므로 버튼을 비활성화함.-->
+                <div th:unless="${record.isConfirmed}">
+                    <td><a type="button"
+                           th:href="@{{currentPath}/{itemId}/edit(currentPath=${#request.getRequestURL()}, itemId=${record.id}) }"
+                           class="btn btn-outline-primary">수정</a></td>
                     <td><button  th:onclick="|del(${record.id})|" class="btn btn-outline-danger">예약 취소</button></td>
+                    <td><button  th:onclick="|confirmStore(${record.id})|" class="btn btn-outline-warning">출고 확정</button></td>
                 </div>
             </tr>
             </tbody>
@@ -61,6 +65,29 @@
             return false;
         }
     }
+
+
+  function confirmStore(id) {
+
+      const con_check = confirm(id+"번 예약을 확정하겠습니까?");
+
+      if(con_check == true) {
+          $.ajax({
+              type: 'PATCH',
+              url: document.location.pathname+'/confirm/'+id,
+              dataType: 'JSON',
+              contentType: 'application/json; charset=utf-8'
+          })
+          .done(function () {
+              alert("재고에서 물건이 출고되었습니다.");
+              window.location.href = document.location.pathname;
+          }).fail(function (error) {
+              alert(JSON.stringify(error));
+          });
+      } else {
+          return false;
+      }
+  }
     </script>
 
     <button id="formBtn" th:onclick="|location.href='@{sendRecords/reserve}'|" class="btn btn-outline-primary">출고 예약</button>

@@ -25,6 +25,8 @@ public class SendRecord {
 
     private LocalDateTime dateTime;
 
+    private boolean isConfirmed = false;
+
 
     public SendRecord(String itemName, int amount, String destination, LocalDateTime dateTime) {
         this.itemName = itemName;
