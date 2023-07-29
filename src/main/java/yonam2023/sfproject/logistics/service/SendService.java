@@ -1,6 +1,7 @@
 package yonam2023.sfproject.logistics.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yonam2023.sfproject.logistics.aop.LogisticsNotify;
@@ -10,8 +11,10 @@ import yonam2023.sfproject.logistics.domain.StoredItem;
 import yonam2023.sfproject.logistics.repository.SendRecordRepository;
 import yonam2023.sfproject.logistics.repository.StoredItemRepository;
 
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class SendService {
@@ -24,15 +27,43 @@ public class SendService {
         SendRecord sendRecord = sendReqForm.toEntity();
         sendRecordRepo.save(sendRecord);
 
+        log.info("sendReqForm.getItemName: {}", sendReqForm.getItemName());
+        log.info("sendRecord.getItemName : {}", sendRecord.getItemName());
+
         StoredItem storedItem = storedItemRepo.findByName(sendRecord.getItemName());
 
+        // 상품을 출고 예약할 때 재고에 해당 상품이 없는 경우이다. 이 경우 두 가지 정책이 있다.
+        // 1) 예외를 발생시킨다.  
+        // 2) 재고에 수량이 0인 상품을 넣어 재고 목록을 만든다.(= 출고 예약일뿐이므로 재고가 없어도 예약은 가능하다고 보는 정책)
+        // 서비스의 융통성을 위해 2번 정책으로 구현한다.
         if(storedItem == null){
-            return storedItemRepo.save(new StoredItem(sendRecord.getItemName(),-sendRecord.getAmount())).getId();
+            // 재고DB에 물건의 존재만 저장하는 것이므로, amount를 0으로 둔다.
+            return storedItemRepo.save( new StoredItem(sendRecord.getItemName(),0) ).getId();
         }
-        else{
-            storedItem.subAmount(sendRecord.getAmount());
-            return storedItem.getId();
+        return storedItem.getId();
+    }
+
+    @LogisticsNotify
+    @Transactional
+    public Long confirmSendRecord(long sendId){
+        SendRecord sendRecord = sendRecordRepo.findById(sendId).orElseThrow();
+        StoredItem storedItem = storedItemRepo.findByName(sendRecord.getItemName());
+
+        // 출고하려는 물건은 항상 재고 목록에 있어야 된다. (수량이 0이하 일 수는 있다.)
+        if(storedItem == null){
+            //있을 수 없는 상황이므로 예외 발생
+            throw new NoSuchElementException("발생할 수 없는 상황.");
         }
+        //출고일을 현재 날짜로 변경
+        sendRecord.setDateTime(LocalDateTime.now());
+
+        //현재 예약이 confirm 되었으므로 갱신.
+        sendRecord.setConfirmed(true);
+
+        //재고에 반영
+        storedItem.subAmount(sendRecord.getAmount());
+
+        return storedItem.getId();
     }
 
     @LogisticsNotify

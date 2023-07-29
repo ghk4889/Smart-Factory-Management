@@ -29,7 +29,7 @@ public class ReceiveService {
 
         // 처음 입고 예약 받은 물건은 재고DB에 저장된 기록이 없으므로, (storedItem == null) 이다.
         if(storedItem == null){
-            // 재고DB에 물건의 존재를 저장만 하는 것이므로, amount를 0으로 둔다.
+            // 재고DB에 물건의 존재만 저장하는 것이므로, amount를 0으로 둔다.
             return storedItemRepo.save( new StoredItem(receiveRecord.getItemName(),0) ).getId();
         }
 
@@ -46,7 +46,7 @@ public class ReceiveService {
         // 처음 입고 받는 물건이어도 null일 수 없다. 입고 예약할 때(ReceiveService#saveReceiveRecord) amount = 0으로 재고에 올려놨기 때문.
         if(storedItem == null){
             //있을 수 없는 상황이므로 예외 발생
-            throw new NoSuchElementException("[ReceiveService#saveReceiveRecord] 발생할 수 없는 상황.");
+            throw new NoSuchElementException("발생할 수 없는 상황.");
         }
         //입고일을 현재 날짜로 변경
         receiveRecord.setDateTime(LocalDateTime.now());

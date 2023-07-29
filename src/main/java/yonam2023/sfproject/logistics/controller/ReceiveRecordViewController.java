@@ -64,6 +64,13 @@ public class ReceiveRecordViewController {
         return "redirect:/receiveRecords";
     }
 
+    @PatchMapping("/confirm/{recordId}")
+    @ResponseBody
+    public ResponseEntity confirmReserve(@PathVariable long recordId){
+        long storedItemId = receiveService.confirmReceiveRecord(recordId);
+        return ResponseEntity.ok(storedItemId);
+    }
+
     // edit form page
     @GetMapping("/{recordId}/edit")
     public String editForm(@PathVariable long recordId, Model model){
@@ -83,13 +90,6 @@ public class ReceiveRecordViewController {
     public ResponseEntity deleteReserve(@PathVariable long recordId){
         receiveService.deleteReceiveRecord(recordId);
         return ResponseEntity.ok(recordId);
-    }
-
-    @PatchMapping("/confirm/{recordId}")
-    @ResponseBody
-    public ResponseEntity confirmReserve(@PathVariable long recordId){
-        long storedItemId = receiveService.confirmReceiveRecord(recordId);
-        return ResponseEntity.ok(storedItemId);
     }
 
 }
