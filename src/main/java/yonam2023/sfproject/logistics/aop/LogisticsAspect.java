@@ -19,10 +19,10 @@ public class LogisticsAspect {
         private final NotifyService notifyService;
         private final StoredItemRepository storedItemRepo;
 
-        @AfterReturning(pointcut = "@annotation(yonam2023.sfproject.logistics.aop.LogisticsNotify)", returning = "storedId")
-        public void notify(JoinPoint joinPoint, Long storedId){
+        @AfterReturning(pointcut = "@annotation(yonam2023.sfproject.logistics.aop.LogisticsNotify)", returning = "itemName")
+        public void notify(JoinPoint joinPoint, String itemName){
             notifyService.departmentNotify(DepartmentType.LOGISTICS,"["+joinPoint.getSignature().getName()+"]",
-                    "Item: "+storedItemRepo.findById(storedId).orElseThrow().getName());
+                    "Item: "+itemName);
         }
     }
 

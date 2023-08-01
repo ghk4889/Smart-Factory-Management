@@ -21,7 +21,7 @@ public class ReceiveService {
 
     @LogisticsNotify
     @Transactional
-    public Long saveReceiveRecord(ReceiveForm.Request receiveReqForm){
+    public String saveReceiveRecord(ReceiveForm.Request receiveReqForm){
         ReceiveRecord receiveRecord = receiveReqForm.toEntity();
         receiveRecordRepo.save(receiveRecord);
 
@@ -30,16 +30,16 @@ public class ReceiveService {
         // 처음 입고 예약 받은 물건은 재고DB에 저장된 기록이 없으므로, (storedItem == null) 이다.
         if(storedItem == null){
             // 재고DB에 물건의 존재만 저장하는 것이므로, amount를 0으로 둔다.
-            return storedItemRepo.save( new StoredItem(receiveRecord.getItemName(),0) ).getId();
+            return storedItemRepo.save( new StoredItem(receiveRecord.getItemName(),0) ).getName();
         }
 
-        return storedItem.getId();
+        return storedItem.getName();
 
     }
 
     @LogisticsNotify
     @Transactional
-    public Long confirmReceiveRecord(long receiveId){
+    public String confirmReceiveRecord(long receiveId){
         ReceiveRecord receiveRecord = receiveRecordRepo.findById(receiveId).orElseThrow();
         StoredItem storedItem = storedItemRepo.findByName(receiveRecord.getItemName());
 
@@ -56,13 +56,13 @@ public class ReceiveService {
 
         //재고에 반영
         storedItem.addAmount(receiveRecord.getAmount());
-        return storedItem.getId();
+        return storedItem.getName();
 
     }
 
     @LogisticsNotify
     @Transactional
-    public Long editReceiveRecord(long receiveId, ReceiveForm.Request receiveReqForm){
+    public String editReceiveRecord(long receiveId, ReceiveForm.Request receiveReqForm){
         ReceiveRecord targetRecord = receiveRecordRepo.findById(receiveId).orElseThrow();
         StoredItem storedItem = storedItemRepo.findByName(receiveReqForm.getItemName());
 
@@ -76,12 +76,12 @@ public class ReceiveService {
         storedItem.subAmount(previousReservedAmount);       //원상 복구
         storedItem.addAmount(receiveReqForm.getAmount());   //수정된 입고량 반영
 
-        return storedItem.getId();
+        return storedItem.getName();
     }
 
     @LogisticsNotify
     @Transactional
-    public Long deleteReceiveRecord(long recordId){
+    public String deleteReceiveRecord(long recordId){
 
         ReceiveRecord findRecord = receiveRecordRepo.findById(recordId).orElseThrow();
         StoredItem storedItem = storedItemRepo.findByName(findRecord.getItemName());
@@ -98,7 +98,7 @@ public class ReceiveService {
         }
         receiveRecordRepo.deleteById(recordId);
 
-        return storedItem.getId();
+        return storedItem.getName();
     }
 
 }
