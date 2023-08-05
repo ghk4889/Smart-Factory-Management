@@ -21,7 +21,7 @@ public class NotifyService {
     Logger logger = LoggerFactory.getLogger(NotifyService.class);
     public void sendNotification(final NotificationRequest request) {
         try {
-            logger.info("Message Sended");
+//            logger.info("Message Sended");
             fcmService.send(request);
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();

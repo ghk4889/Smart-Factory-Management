@@ -23,7 +23,7 @@ public class SendService {
 
     @LogisticsNotify
     @Transactional
-    public Long saveSendRecord(SendForm.Request sendReqForm){
+    public String saveSendRecord(SendForm.Request sendReqForm){
         SendRecord sendRecord = sendReqForm.toEntity();
         sendRecordRepo.save(sendRecord);
 
@@ -38,14 +38,14 @@ public class SendService {
         // 서비스의 융통성을 위해 2번 정책으로 구현한다.
         if(storedItem == null){
             // 재고DB에 물건의 존재만 저장하는 것이므로, amount를 0으로 둔다.
-            return storedItemRepo.save( new StoredItem(sendRecord.getItemName(),0) ).getId();
+            return storedItemRepo.save( new StoredItem(sendRecord.getItemName(),0) ).getName();
         }
-        return storedItem.getId();
+        return storedItem.getName();
     }
 
     @LogisticsNotify
     @Transactional
-    public Long confirmSendRecord(long sendId){
+    public String confirmSendRecord(long sendId){
         SendRecord sendRecord = sendRecordRepo.findById(sendId).orElseThrow();
         StoredItem storedItem = storedItemRepo.findByName(sendRecord.getItemName());
 
@@ -63,12 +63,12 @@ public class SendService {
         //재고에 반영
         storedItem.subAmount(sendRecord.getAmount());
 
-        return storedItem.getId();
+        return storedItem.getName();
     }
 
     @LogisticsNotify
     @Transactional
-    public Long editSendRecord(long id, SendForm.Request sendReqForm){
+    public String editSendRecord(long id, SendForm.Request sendReqForm){
         SendRecord targetRecord = sendRecordRepo.findById(id).orElseThrow();
         StoredItem storedItem = storedItemRepo.findByName(sendReqForm.getItemName());
 
@@ -81,12 +81,12 @@ public class SendService {
         //재고 수정
         storedItem.addAmount(previousReservedAmount); //원상 복구
         storedItem.subAmount(sendReqForm.getAmount()); //수정된 출고 amount 반영
-        return storedItem.getId();
+        return storedItem.getName();
     }
 
     @LogisticsNotify
     @Transactional
-    public Long deleteSendRecord(long recordId){
+    public String deleteSendRecord(long recordId){
 
         // 두 사람이 동시에 같은 예약을 삭제하려고 하면 이미 DB에서 제거되었기 때문에 NoSuchElementException이 발생한다.
         SendRecord findRecord = sendRecordRepo.findById(recordId).orElseThrow();
@@ -101,7 +101,7 @@ public class SendService {
             storedItem.addAmount(findRecord.getAmount());
         }
         sendRecordRepo.deleteById(recordId);
-        return storedItem.getId();
+        return storedItem.getName();
     }
 
 }

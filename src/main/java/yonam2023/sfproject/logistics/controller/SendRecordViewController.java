@@ -65,8 +65,8 @@ public class SendRecordViewController {
     @PatchMapping("/confirm/{recordId}")
     @ResponseBody
     public ResponseEntity confirmReserve(@PathVariable long recordId){
-        long storedItemId = sendService.confirmSendRecord(recordId);
-        return ResponseEntity.ok(storedItemId);
+        String itemName = sendService.confirmSendRecord(recordId);
+        return ResponseEntity.ok(itemName);
     }
 
     // edit form page
